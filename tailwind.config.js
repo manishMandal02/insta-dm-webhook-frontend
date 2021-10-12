@@ -6,10 +6,10 @@ module.exports = {
     extend: {
       colors: {
         mainbg: {
-          DEFAULT: '#1D1E42',
+          DEFAULT: '#222A3F',
         },
         secondary: {
-          DEFAULT: '#1B1B44',
+          DEFAULT: '#1F2239',
         },
       },
     },

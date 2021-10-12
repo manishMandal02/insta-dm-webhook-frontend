@@ -1,14 +1,13 @@
 import axios from 'axios';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import FacebookLogin from 'react-facebook-login';
 import socketClient from 'socket.io-client';
+import { FcOk, FcCancel } from 'react-icons/fc';
 
 // const SERVER = 'http://127.0.0.1:5000';
 const SERVER = 'https://insta-dm-webhooks.herokuapp.com';
 
 const socket = socketClient(SERVER, { transports: ['websocket'] });
-
-socket.on('test', (data) => console.log(data));
 
 const InstaDM = () => {
   const [userAccessToken, setUserAccessToken] = useState('');
@@ -16,6 +15,7 @@ const InstaDM = () => {
   const [userPage, setUserPage] = useState('');
   const [userPageID, setUserPageID] = useState('');
   const [userPageToken, setUserPageToken] = useState('');
+  const [messageData, setmessageData] = useState('');
   let accessToken =
     'EAAOIlgakh54BAICWfcIA2gqZBknh8tR1GhQ7emA3umPtB9UtnaFLapBcjOGJPZB53430za8EbCrVZCnTKmAZBHxi96jFkVYQzhQAvT8jkOOg42F3oSJwjsSpEWwr8PgsFPv3LdDKMBcSzZB0VBUpFPx1RZBE1tJEf13ZByNKRq1aS0ffQonulHrV0gaeVkswnu9H0ib3VgASZACxBYB4O4ZBdlmeEFivYe9oZD';
   const fbLoginResponse = (response) => {
@@ -41,14 +41,14 @@ const InstaDM = () => {
   };
 
   // geting instagram conversation - message threads
-  const getInstaMessageThreads = async () => {
-    const { data } = await axios(
-      `https://graph.facebook.com/v9.0/${userPageID}/conversations?platform=instagram&access_token=EAAIEDxV2qx4BACnBbwmIXZBpGJuxW9POeq3m497HZBRD8ZB970Jg9Q1CuIwLqMUvZCFaJ5rgZAMcP1bn17W8NUY0bm152cQWjpgSPXqYZAZAiU7V4vLuv3XvN5ZBBTwH34xpFyQCMujAD25mYY1HkzduzId2HRqCEZCJHhfnAWpymtZC3HZCdf014SnzBPCZCIOL29YtUidndGZAjIQZDZD`
-    );
-    console.log(data);
-    // setUserPageToken(data.data[0].access_token);
-    // console.log('page access token saved');
-  };
+  //   const getInstaMessageThreads = async () => {
+  //     const { data } = await axios(
+  //       `https://graph.facebook.com/v9.0/${userPageID}/conversations?platform=instagram&access_token=EAAIEDxV2qx4BADk3ATKUAJpQZAZAIyAo7cD9Om3MCLweEZBojGEb0BXytZCR2wdvoYUAmE2jTGzaBA10vFoeAL8XxQP2t8X6UaEdCE8mxuUVkbW55Acu4f9R8emR5GK2vOZAzRbIYli5HBZBnb770zZCi9GR7sRpIyvGkffw6mCZBf2ZBZCPEIyO826hGYVSwTA3Y1enxTm58QvgZDZD`
+  //     );
+  //     console.log(data);
+  //     // setUserPageToken(data.data[0].access_token);
+  //     // console.log('page access token saved');
+  //   };
 
   //enable page subscriptions
   const enablePageSubscription = async () => {
@@ -68,29 +68,76 @@ const InstaDM = () => {
     console.log(data);
     console.log('Page susbsccription enabled');
   };
+
+  //insta dm webhook
+  //socket.io listening
+  socket.on('message_received', (data) => setmessageData(data));
+  useEffect(async () => {
+    if (messageData) {
+      const { data } = await axios(
+        `https://graph.facebook.com/v12.0/${messageData.senderId}?fields=name,profile_pic,follower_count&access_token=${userPageToken}`
+      );
+      console.log('sender details received: ', data);
+    }
+  }, [messageData]);
+  //getting user details from IGSID (instagram senderId)
+
   return (
-    <div className='flex flex-col h-full items-center w-full'>
-      <div className='bg-purple-600 flex items-center text-xl justify-center rounded-md px-4 py-4 flex-col'>
+    <div className='flex h-full items-center w-full justify-around'>
+      <div className='bg-secondary flex items-center text-xl justify-center rounded-md px-5 py-6 flex-col shadow-xl'>
         {/* dropdown box */}
         <FacebookLogin
           appId='994602868049822'
           callback={fbLoginResponse}
           scope='instagram_basic, instagram_manage_messages, pages_manage_metadata, pages_manage_metadata, pages_show_list'
           render={(renderProps) => <button onClick={renderProps.onClick}>Login with Facebook</button>}
+          cssClass='bg-blue-600 w-full text-white py-3 px-12 font-medium rounded  hover:bg-blue-700'
         />
-        <button onClick={getUserPages}>Get User Pages</button>
-        <button onClick={getUserPageToken}>Get FB Page Access Token</button>
-        <button onClick={getInstaMessageThreads}>Get Instagram Message Threads</button>
-        <button onClick={enablePageSubscription}>Enable page subscriptions</button>
-        <button onClick={confirmPageSubscription}>Confirm page subscriptions</button>
-      </div>
-      <div className='flex items-center justify-center py-4 text-white text-xl w-1/2 bg-purple-600 mt-12'>
-        {/* Result */}
-        <div>
-          <p>UserName: {userName}</p>
-          <p>UserPage: {userPage}</p>
-          <p>UserPageID: {userPageID}</p>
+        <button
+          className='text-gray-50 bg-purple-600 mt-4 rounded p-2 px-6 py-3 w-full hover:bg-red-600'
+          onClick={getUserPages}
+        >
+          Get User Pages
+        </button>
+        <button
+          className='text-gray-50 bg-purple-600 mt-4 rounded p-2 px-6 py-3 w-full hover:bg-red-600'
+          onClick={getUserPageToken}
+        >
+          Get Page Access Token
+        </button>
+        {/* <button onClick={getInstaMessageThreads}>Get Instagram Message Threads</button> */}
+        {/* <button
+          className='text-gray-50 bg-red-500 mt-4 rounded p-2 w-full hover:bg-red-600'
+          onClick={enablePageSubscription}
+        >
+          Enable page subscriptions
+        </button> */}
+        {/* <button
+          className='text-gray-50 bg-red-500 mt-4 rounded p-2 w-full hover:bg-red-600'
+          onClick={confirmPageSubscription}
+        >
+          Confirm page subscriptions
+        </button> */}
+        <div className='text-white flex flex-col justify-start w-full mt-6'>
+          <p className='border-2 cursor-pointer border-purple-500 rounded p-2 text-xl '>User : {userName}</p>
+          <p className='border-2 cursor-pointer border-purple-500 rounded p-2 mt-3 text-xl '>
+            Page : {userPage}
+          </p>
+          <p className='border-2 cursor-pointer border-purple-500 rounded p-2 mt-3 text-xl '>
+            PageID : {userPageID}
+          </p>
+          <p className='border-2 cursor-pointer border-purple-500 rounded p-2 mt-3 text-xl flex items-center'>
+            Page Access Token :{' '}
+            <span className='ml-7 scale-125 -mb-1'>{userPageToken ? <FcOk /> : <FcCancel />}</span>
+          </p>
         </div>
+      </div>
+      <div className='flex   flex-col text-white text-xl w-1/2 h-3/5 bg-secondary mt-12 -ml-60 rounded'>
+        {/* Result */}
+        <div className='h-10 bg-gray-900 w-full rounded flex items-center justify-start text-gray-100 text-base'>
+          Network: <span className='ml-1 scale-95 -mb-1'>{userPageToken ? <FcOk /> : <FcCancel />}</span>
+        </div>
+        <div>lorem ipsum</div>
       </div>
     </div>
   );
