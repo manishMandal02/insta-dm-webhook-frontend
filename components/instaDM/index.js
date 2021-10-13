@@ -16,8 +16,9 @@ const InstaDM = () => {
   const [userPageID, setUserPageID] = useState('');
   const [userPageToken, setUserPageToken] = useState('');
   const [messageData, setmessageData] = useState('');
-  let accessToken =
-    'EAAOIlgakh54BAICWfcIA2gqZBknh8tR1GhQ7emA3umPtB9UtnaFLapBcjOGJPZB53430za8EbCrVZCnTKmAZBHxi96jFkVYQzhQAvT8jkOOg42F3oSJwjsSpEWwr8PgsFPv3LdDKMBcSzZB0VBUpFPx1RZBE1tJEf13ZByNKRq1aS0ffQonulHrV0gaeVkswnu9H0ib3VgASZACxBYB4O4ZBdlmeEFivYe9oZD';
+  const [senderData, setSenderData] = useState('');
+
+  //
   const fbLoginResponse = (response) => {
     setUserAccessToken(response.accessToken);
     setUserName(response.name);
@@ -35,9 +36,7 @@ const InstaDM = () => {
     const { data } = await axios(
       `https://graph.facebook.com/v9.0/me/accounts?access_token=${userAccessToken}`
     );
-    console.log(data);
     setUserPageToken(data.data[0].access_token);
-    console.log('page access token saved');
   };
 
   // geting instagram conversation - message threads
@@ -55,7 +54,6 @@ const InstaDM = () => {
     const { data } = await axios(
       `https://graph.facebook.com/v12.0/${userPageID}/subscribed_apps?subscribed_fields=feed&access_token=${userPageToken}`
     );
-    console.log(data);
     // setUserPageToken(data.data[0].access_token);
     // console.log('page access token saved');
   };
@@ -65,7 +63,6 @@ const InstaDM = () => {
     const { data } = await axios(
       `https://graph.facebook.com/v12.0/me/subscribed_apps?access_token=${userPageToken}`
     );
-    console.log(data);
     console.log('Page susbsccription enabled');
   };
 
@@ -77,7 +74,7 @@ const InstaDM = () => {
       const { data } = await axios(
         `https://graph.facebook.com/v12.0/${messageData.senderId}?fields=name,profile_pic,follower_count&access_token=${userPageToken}`
       );
-      console.log('sender details received: ', data);
+      setSenderData(data);
     }
   }, [messageData]);
   //getting user details from IGSID (instagram senderId)
@@ -94,13 +91,13 @@ const InstaDM = () => {
           cssClass='bg-blue-600 w-full text-white py-3 px-12 font-medium rounded  hover:bg-blue-700'
         />
         <button
-          className='text-gray-50 bg-purple-600 mt-4 rounded p-2 px-6 py-3 w-full hover:bg-red-600'
+          className='text-gray-50 bg-purple-600 mt-4 rounded p-2 px-6 py-3 w-full hover:bg-purple-700'
           onClick={getUserPages}
         >
           Get User Pages
         </button>
         <button
-          className='text-gray-50 bg-purple-600 mt-4 rounded p-2 px-6 py-3 w-full hover:bg-red-600'
+          className='text-gray-50 bg-purple-600 mt-4 rounded p-2 px-6 py-3 w-full hover:bg-purple-700 '
           onClick={getUserPageToken}
         >
           Get Page Access Token
@@ -132,12 +129,30 @@ const InstaDM = () => {
           </p>
         </div>
       </div>
-      <div className='flex   flex-col text-white text-xl w-1/2 h-3/5 bg-secondary mt-12 -ml-60 rounded'>
+      <div className='flex   flex-col text-white text-xl w-1/2 h-3/5 bg-secondary mt-12 -ml-96 rounded'>
         {/* Result */}
-        <div className='h-10 bg-gray-900 w-full rounded flex items-center justify-start text-gray-100 text-base'>
+        <div className='h-10 px-2 bg-gray-900 w-full rounded flex items-center justify-start text-gray-100 text-base'>
           Network: <span className='ml-1 scale-95 -mb-1'>{userPageToken ? <FcOk /> : <FcCancel />}</span>
         </div>
-        <div>lorem ipsum</div>
+        <div className='h-80 p-6'>
+          {senderData ? (
+            <div className=' p-2 px-2 w-56 '>
+              <p className='rounded-lg flex bg-blue-600 py-1 px-2 items-center '>
+                <img className='border rounded-full w-10' src={senderData.profile_pic} alt='profile image' />
+                <span className='ml-2 font-medium'>{senderData.name}</span>
+              </p>
+              <div className='bg-indigo-600 py-1 rounded mt-1 px-2'>
+                <p className='m-0'>{messageData.message}</p>
+                <p className='text-xs text-gray-300 font-medium mt-1'>
+                  {messageData.date}
+                  <span className='ml-2'>{messageData.time}</span>
+                </p>
+              </div>
+            </div>
+          ) : (
+            'No Messages yet'
+          )}
+        </div>
       </div>
     </div>
   );
