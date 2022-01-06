@@ -84,7 +84,7 @@ const InstaDM = () => {
       <div className='bg-secondary flex items-center text-xl justify-center rounded-md px-5 py-6 flex-col shadow-xl'>
         {/* dropdown box */}
         <FacebookLogin
-          appId='994602868049822'
+          appId=''
           callback={fbLoginResponse}
           scope='instagram_basic, instagram_manage_messages, pages_manage_metadata, pages_manage_metadata, pages_show_list'
           render={(renderProps) => <button onClick={renderProps.onClick}>Login with Facebook</button>}
